@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RICE Confidence Agent — Etsy PM Playbook</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f7f7f5;
+      --border: #e8e8e4;
+      --border-secondary: #d4d4ce;
+      --text: #1a1a18;
+      --text-secondary: #6b6b66;
+      --text-tertiary: #9b9b95;
+      --green: #1D9E75;
+      --green-light: #E1F5EE;
+      --green-mid: #9FE1CB;
+      --green-dark: #085041;
+      --amber: #EF9F27;
+      --amber-light: #FAEEDA;
+      --amber-border: #FAC775;
+      --red: #E24B4A;
+      --blue: #378ADD;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    header {
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: 2rem;
+    }
+
+    header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    header p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .agent {
+      width: 100%;
+      max-width: 680px;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.5rem;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 9px;
+      font-size: 13px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: var(--font);
+      transition: all 0.15s;
+    }
+
+    .mode-btn.active {
+      border-color: var(--green);
+      background: var(--green-light);
+      color: var(--green-dark);
+      font-weight: 500;
+    }
+
+    .phase-indicator {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .phase-dot {
+      height: 4px;
+      flex: 1;
+      border-radius: 2px;
+      background: var(--border);
+      transition: background 0.4s;
+    }
+
+    .phase-dot.active { background: var(--green); }
+    .phase-dot.done { background: var(--green-mid); }
+
+    .phase-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .messages {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      min-height: 80px;
+    }
+
+    .msg {
+      padding: 12px 16px;
+      border-radius: var(--radius-lg);
+      max-width: 88%;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .msg.agent {
+      background: var(--bg-secondary);
+      color: var(--text);
+      align-self: flex-start;
+      border: 0.5px solid var(--border);
+    }
+
+    .msg.user {
+      background: var(--green-light);
+      color: var(--green-dark);
+      align-self: flex-end;
+    }
+
+    .msg.nudge {
+      background: var(--amber-light);
+      color: #633806;
+      align-self: flex-start;
+      border: 0.5px solid var(--amber-border);
+      font-size: 13px;
+    }
+
+    .pick-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .pick-btn {
+      padding: 10px 14px;
+      font-size: 13px;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--bg);
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      line-height: 1.5;
+      display: block;
+      width: 100%;
+      margin-bottom: 8px;
+      font-family: var(--font);
+      transition: all 0.15s;
+    }
+
+    .pick-btn:hover {
+      background: var(--bg-secondary);
+      border-color: var(--green);
+    }
+
+    .input-area {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .input-area textarea {
+      flex: 1;
+      min-height: 76px;
+      max-height: 160px;
+      font-size: 14px;
+      font-family: var(--font);
+      padding: 10px 12px;
+      resize: none;
+      border: 0.5px solid var(--border-secondary);
+      border-radius: var(--radius-md);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .input-area textarea:focus {
+      outline: none;
+      border-color: var(--green);
+    }
+
+    .send-btn {
+      height: 42px;
+      padding: 0 18px;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .send-btn:hover { background: var(--green-dark); }
+
+    .type-badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 1rem;
+      background: var(--green-light);
+      color: var(--green-dark);
+      border: 0.5px solid var(--green-mid);
+    }
+
+    .score-card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin: 1rem 0;
+    }
+
+    .score-cell {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      text-align: center;
+    }
+
+    .score-cell .slabel {
+      font-size: 10px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .score-cell .svalue {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .score-cell .ssub {
+      font-size: 10px;
+      margin-top: 3px;
+      color: var(--text-tertiary);
+    }
+
+    .rice-total {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin: 1rem 0 0.5rem;
+    }
+
+    .rice-total .rnum {
+      font-size: 36px;
+      font-weight: 600;
+      color: var(--green);
+    }
+
+    .rice-total .rlabel {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .conf-badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      margin: 8px 0 4px;
+    }
+
+    .risk-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin: 1rem 0;
+    }
+
+    .risk-cell {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+    }
+
+    .risk-cell .rlabel {
+      font-size: 10px;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .risk-cell .rval {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .risk-cell .rwt {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+
+    .gap-item {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      padding: 6px 0;
+      border-top: 0.5px solid var(--border);
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .gdot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    .restart-btn {
+      margin-top: 1rem;
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: none;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 7px 16px;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+
+    .restart-btn:hover { background: var(--bg-secondary); }
+
+    @media (max-width: 480px) {
+      .score-grid { grid-template-columns: repeat(2, 1fr); }
+      .risk-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>RICE Confidence Agent</h1>
+  <p>A Socratic playbook for Etsy PMs — roadmap gate &amp; monthly check-in</p>
+</header>
+
+<div class="agent">
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="btn-roadmap" onclick="setMode('roadmap')">Roadmap gate</button>
+    <button class="mode-btn" id="btn-checkin" onclick="setMode('checkin')">Monthly check-in</button>
+  </div>
+  <div id="phase-bar" class="phase-indicator">
+    <div class="phase-dot active" id="p0"></div>
+    <div class="phase-dot" id="p1"></div>
+    <div class="phase-dot" id="p2"></div>
+    <div class="phase-dot" id="p3"></div>
+    <div class="phase-dot" id="p4"></div>
+  </div>
+  <div id="phase-label" class="phase-label">PM type</div>
+  <div id="type-badge"></div>
+  <div id="messages" class="messages"></div>
+  <div id="picker-area"></div>
+  <div id="output-area"></div>
+  <div class="input-area" id="input-area" style="display:none">
+    <textarea id="user-input" placeholder="Type your response..." onkeydown="handleKey(event)"></textarea>
+    <button class="send-btn" onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+  let mode = 'roadmap', phase = 0, qIndex = 0;
+  let answers = {}, pmType = null, consumerAudience = null, scores = {};
+
+  const PHASES = ['PM type','Problem','Reach','Impact','Confidence','Effort'];
+
+  const PM_TYPES = [
+    { id: 'consumer', label: 'Consumer / B2C', desc: 'Features for buyers or sellers on Etsy' },
+    { id: 'internal', label: 'Internal tooling / Enablement', desc: 'Tools for Etsy employees' }
+  ];
+
+  const REACH_SCALES = {
+    consumer_seller: [
+      { label: 'Low', range: '≤55K sellers', score: 1 },
+      { label: 'Med-Low', range: '55K–554K sellers', score: 4 },
+      { label: 'Med-High', range: '554K–2.8M sellers', score: 7 },
+      { label: 'High', range: '>2.8M sellers', score: 10 }
+    ],
+    consumer_buyer: [
+      { label: 'Low', range: '≤950K buyers', score: 1 },
+      { label: 'Med-Low', range: '950K–9.5M buyers', score: 4 },
+      { label: 'Med-High', range: '9.5M–47.5M buyers', score: 7 },
+      { label: 'High', range: '>47.5M buyers', score: 10 }
+    ],
+    internal: [
+      { label: 'Low', range: '≤175 employees', score: 1 },
+      { label: 'Med-Low', range: '176–870 employees', score: 4 },
+      { label: 'Med-High', range: '871–2,440 employees', score: 7 },
+      { label: 'High', range: '>2,440 employees', score: 10 }
+    ]
+  };
+
+  const EVIDENCE_LEVELS = [
+    { label: 'Near-Zero', desc: 'Self conviction, pitch deck, vibes', score: 5 },
+    { label: 'Low', desc: 'Anecdotal — a few data points, 1–3 users', score: 20 },
+    { label: 'Med-Low', desc: 'Market data, surveys, smoke tests, estimates & plans', score: 40 },
+    { label: 'Med-High', desc: 'User/customer evidence — 20+ interviews, usability study, MVP', score: 65 },
+    { label: 'High', desc: 'Test results — A/B, beta, longitudinal studies, launch data', score: 90 }
+  ];
+
+  const ETSY_PRIORITIES = ['be human', 'be present', 'be relevant', 'be loyal'];
+
+  const PROBLEM_QUESTIONS = [
+    { q: "Describe the customer problem you're solving. Don't pitch the solution — just the problem as you understand it.", key: 'problem_raw' },
+    { q: "Who specifically has this problem? Can you describe a real person or segment — not a persona, an actual user type you've observed?", key: 'who', nudge: "Vague answers here weaken every RICE estimate downstream. Be specific." },
+    { q: "How do you know this is a real problem? What have you seen or heard — not inferred?", key: 'evidence_problem' },
+    { q: "What happens to the user if this problem isn't solved? What's the actual cost to them?", key: 'cost_of_inaction' }
+  ];
+
+  const IMPACT_QUESTIONS = [
+    { q: "If this problem is solved, what specifically changes for the user? What's the measurable outcome?", key: 'impact_outcome' },
+    { q: "How did you arrive at that impact estimate — observed behavior, user research, or assumption?", key: 'impact_source', nudge: "Impact based on what users say they want vs. what they actually do are very different levels of evidence." }
+  ];
+
+  const CONFIDENCE_QUESTIONS = [
+    { q: "What's your proposed solution to this problem?", key: 'solution_raw' },
+    { q: "What's the biggest assumption baked into this solution that you haven't tested yet?", key: 'solution_assumption', nudge: "Most people skip this. The assumption you just named is the biggest risk in your plan." },
+    { q: "What evidence do you have that customers will actually choose to use this? Walk me through what you've seen — not what you believe.", key: 'value_evidence' },
+    { q: "Do you have any research or evidence showing users can figure out how to use this on their own — even something early like watching 2–3 people try a sketch?", key: 'usability_evidence' },
+    { q: "Has eng weighed in on whether this is buildable? What's their read?", key: 'feasibility_evidence' },
+    { q: "Does this support or conflict with Etsy's 2026 priorities — Be Human, Be Present, Be Relevant, Be Loyal?", key: 'viability_evidence' }
+  ];
+
+  const EFFORT_QUESTIONS = [
+    { q: "How many weeks of eng effort is this estimated at?", key: 'effort_raw' },
+    { q: "Has this been scoped with the eng lead, or is this your rough guess?", key: 'effort_source', nudge: "Effort estimates without eng input are typically off by 2x — and that'll pull your confidence down." }
+  ];
+
+  const CHECKIN_FLOW = [
+    { q: "What feature are you checking in on, and what was your confidence level last month?", key: 'feature' },
+    { q: "What new evidence have you gathered this month? Walk me through it.", key: 'evidence_new' },
+    { q: "Of that evidence — how many real users did it come from? And did you observe behavior change, or just hear positive sentiment?", key: 'evidence_quality', nudge: "'Users liked it' is weak signal. 'Users completed the flow without prompting' is strong signal." },
+    { q: "Has anything surprised you — evidence that challenged your original hypothesis?", key: 'surprises' },
+    { q: "What's still the biggest unknown about whether this solution will work?", key: 'biggest_unknown' },
+    { q: "Given everything — what's your confidence level now, and what would move it higher?", key: 'confidence_now' }
+  ];
+
+  function phaseQuestions() {
+    return [null, PROBLEM_QUESTIONS, null, IMPACT_QUESTIONS, CONFIDENCE_QUESTIONS, EFFORT_QUESTIONS][phase] || [];
+  }
+
+  function setMode(m) {
+    mode = m;
+    document.getElementById('btn-roadmap').className = 'mode-btn' + (m==='roadmap'?' active':'');
+    document.getElementById('btn-checkin').className = 'mode-btn' + (m==='checkin'?' active':'');
+    reset();
+  }
+
+  function reset() {
+    phase=0; qIndex=0; answers={}; pmType=null; consumerAudience=null; scores={};
+    document.getElementById('messages').innerHTML='';
+    document.getElementById('output-area').innerHTML='';
+    document.getElementById('picker-area').innerHTML='';
+    document.getElementById('input-area').style.display='none';
+    document.getElementById('type-badge').innerHTML='';
+    document.getElementById('phase-bar').style.display=mode==='roadmap'?'flex':'none';
+    updatePhaseBar();
+    if(mode==='checkin'){
+      document.getElementById('input-area').style.display='flex';
+      setTimeout(()=>addMsg(CHECKIN_FLOW[0].q,'agent'),200);
+    } else {
+      setTimeout(()=>showPMTypePicker(),200);
+    }
+  }
+
+  function updatePhaseBar() {
+    document.querySelectorAll('.phase-dot').forEach((el,i)=>{
+      el.className='phase-dot'+(i<phase?' done':i===phase?' active':'');
+    });
+    document.getElementById('phase-label').textContent=mode==='checkin'?'Evidence check-in':(PHASES[phase]||'Complete');
+  }
+
+  function showPMTypePicker() {
+    addMsg("First, what type of PM are you?",'agent');
+    document.getElementById('picker-area').innerHTML='<div class="pick-label">Select your PM type</div>'+
+      PM_TYPES.map(t=>`<button class="pick-btn" onclick="selectPMType('${t.id}')"><strong style="font-weight:600">${t.label}</strong><br><span style="font-size:12px;color:#6b6b66">${t.desc}</span></button>`).join('');
+  }
+
+  function selectPMType(type) {
+    pmType=type;
+    const label=PM_TYPES.find(t=>t.id===type).label;
+    document.getElementById('picker-area').innerHTML='';
+    addMsg(label,'user');
+    document.getElementById('type-badge').innerHTML=`<span class="type-badge">${label}</span>`;
+    phase=1; updatePhaseBar();
+    if(type==='consumer') setTimeout(()=>showAudiencePicker(),400);
+    else setTimeout(()=>startPhase(),400);
+  }
+
+  function showAudiencePicker() {
+    addMsg("Are you building for sellers or buyers?",'agent');
+    document.getElementById('picker-area').innerHTML='<div class="pick-label">Select primary audience</div>'+
+      ['Sellers','Buyers'].map(a=>`<button class="pick-btn" onclick="selectAudience('${a.toLowerCase()}')">${a}</button>`).join('');
+  }
+
+  function selectAudience(aud) {
+    consumerAudience=aud;
+    document.getElementById('picker-area').innerHTML='';
+    addMsg(aud.charAt(0).toUpperCase()+aud.slice(1),'user');
+    setTimeout(()=>startPhase(),400);
+  }
+
+  function startPhase() {
+    qIndex=0;
+    document.getElementById('input-area').style.display='flex';
+    setTimeout(()=>addMsg(phaseQuestions()[0].q,'agent'),300);
+  }
+
+  function showReachPicker() {
+    phase=2; qIndex=0; updatePhaseBar();
+    document.getElementById('input-area').style.display='none';
+    addMsg("How many people does this problem affect?",'agent');
+    const key=pmType==='internal'?'internal':`consumer_${consumerAudience}`;
+    document.getElementById('picker-area').innerHTML='<div class="pick-label">Select reach</div>'+
+      REACH_SCALES[key].map(s=>`<button class="pick-btn" onclick="selectReach(${s.score},'${s.label}','${s.range}')"><strong style="font-weight:600">${s.label}</strong> <span style="font-size:12px;color:#6b6b66">${s.range}</span></button>`).join('');
+  }
+
+  function selectReach(score,label,range) {
+    answers.reach_score=score; answers.reach_label=label; answers.reach_range=range;
+    document.getElementById('picker-area').innerHTML='';
+    addMsg(`${label} — ${range}`,'user');
+    addMsg("What data supports that estimate — analytics, research, or a gut feel?",'agent');
+    answers.reach_source_pending=true;
+    document.getElementById('input-area').style.display='flex';
+  }
+
+  function addMsg(text,role) {
+    if(!text) return;
+    const msgs=document.getElementById('messages');
+    const div=document.createElement('div');
+    div.className='msg '+role;
+    div.textContent=text;
+    msgs.appendChild(div);
+    msgs.scrollTop=msgs.scrollHeight;
+  }
+
+  function isTooVague(text) {
+    const vague=['not sure',"don't know",'maybe','probably','i think','all users','everyone','most people','guess'];
+    return text.length<25||vague.some(v=>text.toLowerCase().includes(v));
+  }
+
+  function scoreFromText(text,hi,lo) {
+    if(!text) return 0.3;
+    const t=text.toLowerCase();
+    const h=hi.some(k=>t.includes(k)), l=lo.some(k=>t.includes(k));
+    if(h&&!l) return 0.8; if(l&&!h) return 0.2; return 0.5;
+  }
+
+  function evidenceLevelFromText(text) {
+    if(!text) return EVIDENCE_LEVELS[0];
+    const t=text.toLowerCase();
+    if(['a/b','beta','longitudinal','launch data','alpha','large-scale'].some(k=>t.includes(k))) return EVIDENCE_LEVELS[4];
+    if(['usability study','20+','mvp','interviews with','user research','multiple users','many users','lots of'].some(k=>t.includes(k))) return EVIDENCE_LEVELS[3];
+    if(['survey','smoke test','market data','competitor','estimates','feasibility','timeline','plan'].some(k=>t.includes(k))) return EVIDENCE_LEVELS[2];
+    if(['1-3','a few','one user','couple of users','anecdotal','top request','sales request','single'].some(k=>t.includes(k))) return EVIDENCE_LEVELS[1];
+    return EVIDENCE_LEVELS[0];
+  }
+
+  function viabilityScore(text) {
+    if(!text) return { score: 0, label: 'unclear', conflict: false, aligned: false };
+    const t=text.toLowerCase();
+    const conflict=['against','conflict','contradict','undermines','removes','eliminates','replaces human','less human','impersonal'].some(k=>t.includes(k));
+    const aligned=ETSY_PRIORITIES.some(p=>t.includes(p))||['human connection','discovery','machine learning','loyalty','retention','seller','buyer'].some(k=>t.includes(k));
+    if(conflict) return { score: -20, label: 'conflicts with priorities', conflict: true, aligned: false };
+    if(aligned) return { score: 10, label: 'aligned with priorities', conflict: false, aligned: true };
+    return { score: 0, label: 'neutral', conflict: false, aligned: false };
+  }
+
+  function sendMessage() {
+    const input=document.getElementById('user-input');
+    const text=input.value.trim();
+    if(!text) return;
+    input.value='';
+    addMsg(text,'user');
+
+    if(mode==='checkin') {
+      answers[CHECKIN_FLOW[qIndex]?.key]=text;
+      const nudge=CHECKIN_FLOW[qIndex]?.nudge;
+      if(nudge&&isTooVague(text)) setTimeout(()=>addMsg(nudge,'nudge'),300);
+      qIndex++;
+      if(qIndex>=CHECKIN_FLOW.length){ document.getElementById('input-area').style.display='none'; setTimeout(()=>renderCheckinOutput(),500); }
+      else setTimeout(()=>addMsg(CHECKIN_FLOW[qIndex].q,'agent'),400);
+      return;
+    }
+
+    if(phase===2&&answers.reach_source_pending) {
+      answers.reach_source=text;
+      answers.reach_source_pending=false;
+      if(scoreFromText(text,['data','analytics','measured','research'],['guess','think','assume','probably'])<0.5)
+        setTimeout(()=>addMsg("If it's a guess, that's okay — but it'll lower your reach quality score.",'nudge'),300);
+      phase=3; qIndex=0; updatePhaseBar();
+      setTimeout(()=>{ addMsg("Good. Now let's talk about impact.",'agent'); setTimeout(()=>addMsg(IMPACT_QUESTIONS[0].q,'agent'),500); },400);
+      return;
+    }
+
+    const qs=phaseQuestions();
+    if(!qs||!qs.length) return;
+    const current=qs[qIndex];
+    if(current){ answers[current.key]=text; if(current.nudge&&isTooVague(text)) setTimeout(()=>addMsg(current.nudge,'nudge'),300); }
+
+    qIndex++;
+    if(qIndex>=qs.length) {
+      if(phase===1) setTimeout(()=>showReachPicker(),400);
+      else if(phase===3){ phase=4; qIndex=0; updatePhaseBar(); setTimeout(()=>{ addMsg("Now the hard one — let's pressure-test your solution.",'agent'); setTimeout(()=>addMsg(CONFIDENCE_QUESTIONS[0].q,'agent'),500); },400); }
+      else if(phase===4){ phase=5; qIndex=0; updatePhaseBar(); setTimeout(()=>{ addMsg("Almost there — effort.",'agent'); setTimeout(()=>addMsg(EFFORT_QUESTIONS[0].q,'agent'),500); },400); }
+      else if(phase===5){ document.getElementById('input-area').style.display='none'; setTimeout(()=>{ deriveScores(); renderScoreOutput(); },500); }
+    } else {
+      setTimeout(()=>addMsg(qs[qIndex].q,'agent'),400);
+    }
+  }
+
+  function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); } }
+
+  function deriveScores() {
+    scores.reach=answers.reach_score||1;
+    scores.reach_label=answers.reach_label||'Low';
+    scores.reach_q=scoreFromText(answers.reach_source,['data','analytics','crm','research','measured'],['guess','estimate','assume','think'])>0.6?'data-backed':'assumption-based';
+
+    const impactSig=scoreFromText(answers.impact_source,['data','research','observed','measured','analytic','test'],['assume','think','guess','probably','expect']);
+    scores.impact=impactSig>0.6?3:impactSig>0.4?2:1;
+    scores.impact_q=impactSig>0.6?'data-backed':impactSig>0.4?'mixed':'assumption-based';
+
+    const valueEvidence=evidenceLevelFromText(answers.value_evidence);
+    const usabilityEvidence=evidenceLevelFromText(answers.usability_evidence);
+    const feasibilityEvidence=evidenceLevelFromText(answers.feasibility_evidence);
+    const viability=viabilityScore(answers.viability_evidence);
+    const effortScoped=scoreFromText(answers.effort_source,['eng lead','engineer','tech lead','scoped','yes'],['guess','rough','not yet','no'])>0.6;
+    const feasScore=effortScoped?feasibilityEvidence.score:feasibilityEvidence.score*0.7;
+
+    let rawConf=(valueEvidence.score*0.40)+((viability.score===10?65:viability.score===-20?0:50)*0.30)+(usabilityEvidence.score*0.15)+(feasScore*0.15);
+    rawConf=Math.min(100,Math.max(0,rawConf+viability.score));
+
+    scores.confidence_pct=Math.round(rawConf);
+    scores.confidence_label=rawConf>=75?'High':rawConf>=55?'Med-High':rawConf>=30?'Med-Low':rawConf>=15?'Low':'Near-Zero';
+    scores.value_level=valueEvidence.label;
+    scores.usability_level=usabilityEvidence.label;
+    scores.feasibility_level=effortScoped?'Med-High':'Low';
+    scores.viability_label=viability.label;
+    scores.viability_conflict=viability.conflict;
+    scores.viability_aligned=viability.aligned;
+    scores.effort=Math.min(parseInt((answers.effort_raw||'').replace(/[^0-9]/g,''))||4,20);
+    scores.effort_scoped=effortScoped;
+    scores.rice=Math.round((scores.reach*scores.impact*(scores.confidence_pct/100))/Math.max(scores.effort,1));
+  }
+
+  function confColor(label) {
+    return label==='High'?'#1D9E75':label==='Med-High'?'#5BAD8F':label==='Med-Low'?'#EF9F27':label==='Low'?'#E07B30':'#E24B4A';
+  }
+
+  function qColor(q) { return q==='data-backed'?'#1D9E75':q==='mixed'?'#EF9F27':'#E24B4A'; }
+
+  function deriveGaps() {
+    const gaps=[], strengths=[];
+    if(scores.reach_q==='assumption-based') gaps.push('Reach is estimated, not measured — validate with analytics before committing');
+    else strengths.push('Reach is grounded in data');
+    if(['Near-Zero','Low'].includes(scores.value_level)) gaps.push('Value risk is high — biggest priority before roadmap. You need more than belief that customers want this.');
+    else if(scores.value_level==='Med-Low') gaps.push('Value evidence exists but is thin — push for user interviews or an MVP before committing');
+    else strengths.push('Value risk is reasonably de-risked');
+    if(scores.viability_conflict) gaps.push("This conflicts with Etsy's 2026 priorities — resolve before moving forward");
+    else if(scores.viability_aligned) strengths.push("Aligned with Etsy's 2026 priorities — viability risk is low");
+    if(['Near-Zero','Low'].includes(scores.usability_level)) gaps.push('No usability evidence yet — watch at least 2–3 people try it before roadmap');
+    if(!scores.effort_scoped) gaps.push('Effort not scoped with eng lead — get sign-off before committing to timeline');
+    if(answers.solution_assumption) gaps.push('Untested assumption: "'+answers.solution_assumption.slice(0,80)+(answers.solution_assumption.length>80?'…':'')+'"');
+    return { gaps: gaps.slice(0,4), strengths: strengths.slice(0,2) };
+  }
+
+  function renderScoreOutput() {
+    const {gaps,strengths}=deriveGaps();
+    const cc=confColor(scores.confidence_label);
+    const readiness=(scores.confidence_label==='High'||scores.confidence_label==='Med-High')?'Ready for roadmap':scores.confidence_label==='Med-Low'?'More discovery needed':'Too early to prioritize';
+
+    document.getElementById('output-area').innerHTML=`
+      <div class="score-card">
+        <div style="font-size:13px;color:#6b6b66;margin-bottom:8px">RICE score</div>
+        <div class="rice-total"><span class="rnum">${scores.rice}</span><span class="rlabel">points</span></div>
+        <div class="score-grid">
+          <div class="score-cell">
+            <div class="slabel">REACH</div>
+            <div class="svalue">${scores.reach_label}</div>
+            <div class="ssub">${answers.reach_range||''}</div>
+            <div style="font-size:10px;margin-top:2px;color:${qColor(scores.reach_q)}">${scores.reach_q}</div>
+          </div>
+          <div class="score-cell">
+            <div class="slabel">IMPACT</div>
+            <div class="svalue">${scores.impact}</div>
+            <div style="font-size:10px;margin-top:2px;color:${qColor(scores.impact_q)}">${scores.impact_q}</div>
+          </div>
+          <div class="score-cell">
+            <div class="slabel">CONFIDENCE</div>
+            <div class="svalue" style="color:${cc}">${scores.confidence_label}</div>
+            <div class="ssub">${scores.confidence_pct}%</div>
+          </div>
+          <div class="score-cell">
+            <div class="slabel">EFFORT</div>
+            <div class="svalue">${scores.effort}</div>
+            <div class="ssub">weeks</div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#6b6b66;margin:12px 0 8px">Risk breakdown</div>
+        <div class="risk-row">
+          <div class="risk-cell">
+            <div class="rlabel">VALUE RISK · 40% weight</div>
+            <div class="rval" style="color:${confColor(scores.value_level)}">${scores.value_level}</div>
+          </div>
+          <div class="risk-cell">
+            <div class="rlabel">VIABILITY RISK · 30% weight</div>
+            <div class="rval" style="color:${scores.viability_conflict?'#E24B4A':scores.viability_aligned?'#1D9E75':'#9b9b95'}">${scores.viability_label}</div>
+            <div class="rwt">Be Human · Be Present · Be Relevant · Be Loyal</div>
+          </div>
+          <div class="risk-cell">
+            <div class="rlabel">USABILITY RISK · 15% weight</div>
+            <div class="rval" style="color:${confColor(scores.usability_level)}">${scores.usability_level}</div>
+          </div>
+          <div class="risk-cell">
+            <div class="rlabel">FEASIBILITY RISK · 15% weight</div>
+            <div class="rval" style="color:${confColor(scores.feasibility_level)}">${scores.feasibility_level}</div>
+            <div class="rwt">${scores.effort_scoped?'Scoped with eng lead':'Not yet scoped with eng'}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin:12px 0 4px">
+          <span class="conf-badge" style="background:${cc}22;color:${cc};border:1px solid ${cc}44">${scores.confidence_label}</span>
+          <span style="font-size:12px;color:#9b9b95">${readiness}</span>
+        </div>
+        <div style="font-size:12px;color:#6b6b66;margin:12px 0 6px">What's solid</div>
+        ${strengths.map(s=>`<div class="gap-item"><div class="gdot" style="background:#1D9E75"></div>${s}</div>`).join('')}
+        <div style="font-size:12px;color:#6b6b66;margin:12px 0 6px">Gaps to address</div>
+        ${gaps.map(g=>`<div class="gap-item"><div class="gdot" style="background:#EF9F27"></div>${g}</div>`).join('')}
+      </div>
+      <button class="restart-btn" onclick="reset()">Start over with a new problem</button>`;
+  }
+
+  function renderCheckinOutput() {
+    const confNow=parseInt((answers.confidence_now||'5').replace(/[^0-9]/g,''))||5;
+    const evidenceStrong=scoreFromText(answers.evidence_quality,['behavior','completed','observed','changed','measured'],['liked','positive','feedback','said they'])>0.5;
+    const hasSurprise=scoreFromText(answers.surprises,['surprised','unexpected','wrong','challenged','changed'],['no','nothing','nope'])>0.5;
+    const delta=evidenceStrong?'+15%':'+5%';
+    const qc=evidenceStrong?'#1D9E75':'#EF9F27';
+
+    document.getElementById('output-area').innerHTML=`
+      <div class="score-card">
+        <div style="font-size:13px;color:#6b6b66;margin-bottom:12px">Check-in summary</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <div class="score-cell" style="flex:1"><div class="slabel">Confidence delta</div><div class="svalue" style="color:#1D9E75">${delta}</div></div>
+          <div class="score-cell" style="flex:1"><div class="slabel">Evidence quality</div><div class="svalue" style="color:${qc}">${evidenceStrong?'strong':'weak'}</div></div>
+          <div class="score-cell" style="flex:1"><div class="slabel">Current confidence</div><div class="svalue">${confNow}/10</div></div>
+        </div>
+        <div class="gap-item"><div class="gdot" style="background:#1D9E75"></div>Evidence this month: ${(answers.evidence_new||'—').slice(0,120)}</div>
+        ${hasSurprise?`<div class="gap-item"><div class="gdot" style="background:#EF9F27"></div>Surprise signal detected — revisit your original hypothesis</div>`:''}
+        <div class="gap-item"><div class="gdot" style="background:#EF9F27"></div>Biggest unknown: ${(answers.biggest_unknown||'—').slice(0,120)}</div>
+        <div class="gap-item"><div class="gdot" style="background:#378ADD"></div>Next: address "${(answers.biggest_unknown||'your biggest gap').slice(0,70)}" before next check-in</div>
+      </div>
+      <button class="restart-btn" onclick="reset()">New check-in</button>`;
+  }
+
+  reset();
+</script>
+</body>
+</html>
