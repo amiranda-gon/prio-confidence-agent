@@ -559,14 +559,16 @@
     setTimeout(()=>addMsg(phaseQuestions()[0].q,'agent'),300);
   }
 
-  function showReachPicker() {
+ function showReachPicker() {
     phase=2; qIndex=0; updatePhaseBar();
     document.getElementById('input-area').style.display='none';
     addMsg("How many people does this problem affect?",'agent');
-    const key=pmType==='internal'?'internal':`consumer_${consumerAudience}`;
+    const key=pmType==='internal'?'internal':`consumer_${consumerAudience||'seller'}`;
+    const scale=REACH_SCALES[key];
+    if(!scale) { console.error('No scale found for key:', key, 'pmType:', pmType, 'audience:', consumerAudience); return; }
     const pickerArea = document.getElementById('picker-area');
     pickerArea.innerHTML='<div class="pick-label">Select reach</div>'+
-      REACH_SCALES[key].map(s=>`<button class="pick-btn" onclick="selectReach(${s.score},'${s.label}','${s.range}')">${s.range}</button>`).join('');
+      scale.map(s=>`<button class="pick-btn" onclick="selectReach(${s.score},\'${s.label}\',\'${s.range}\')">${s.range}</button>`).join('');
     setTimeout(()=>pickerArea.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
   }
 
