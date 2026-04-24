@@ -646,8 +646,17 @@ function addMsg(text,role) {
     // paste here
   }
 
-  function goBack() {
-    // paste here
+function saveHistory() {
+    const msgs=document.getElementById('messages');
+    history.push({
+      phase, qIndex, pmType, consumerAudience,
+      answers: {...answers},
+      msgCount: msgs.children.length,
+      inputVisible: document.getElementById('input-area').style.display,
+      phaseLabel: document.getElementById('phase-label').textContent,
+      typeBadge: document.getElementById('type-badge').innerHTML
+    });
+    document.getElementById('back-btn').style.display='block';
   }
 
   function isTooVague(text) {
