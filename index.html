@@ -687,6 +687,7 @@ function addMsg(text,role) {
     const text=input.value.trim();
     if(!text) return;
     input.value='';
+     saveHistory();
     addMsg(text,'user');
 
     if(mode==='checkin') {
