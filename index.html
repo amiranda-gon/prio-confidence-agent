@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title> Get Confidence Agent — Etsy PM Prioritization Guide </title>
+  <title>RICE Confidence Agent — Etsy PM Playbook</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -438,11 +438,11 @@
   };
 
   const EVIDENCE_LEVELS = [
-    { label: 'Near-Zero', desc: 'Self conviction, pitch deck, vibes', score: 5 },
-    { label: 'Low', desc: 'Anecdotal — a few data points, 1–3 users', score: 20 },
-    { label: 'Med-Low', desc: 'Market data, surveys, smoke tests, estimates & plans', score: 40 },
-    { label: 'Med-High', desc: 'User/customer evidence — 20+ interviews, usability study, MVP', score: 65 },
-    { label: 'High', desc: 'Test results — A/B, beta, longitudinal studies, launch data', score: 90 }
+    { label: 'Near-Zero', score: 5 },
+    { label: 'Low', score: 20 },
+    { label: 'Med-Low', score: 40 },
+    { label: 'Med-High', score: 65 },
+    { label: 'High', score: 90 }
   ];
 
   const ETSY_PRIORITIES = ['be human', 'be present', 'be relevant', 'be loyal'];
@@ -558,17 +558,20 @@
     document.getElementById('input-area').style.display='none';
     addMsg("How many people does this problem affect?",'agent');
     const key=pmType==='internal'?'internal':`consumer_${consumerAudience}`;
-    document.getElementById('picker-area').innerHTML='<div class="pick-label">Select reach</div>'+
-      REACH_SCALES[key].map(s=>`<button class="pick-btn" onclick="selectReach(${s.score},'${s.label}','${s.range}')"><strong style="font-weight:600">${s.label}</strong> <span style="font-size:12px;color:#6b6b66">${s.range}</span></button>`).join('');
+    const pickerArea = document.getElementById('picker-area');
+    pickerArea.innerHTML='<div class="pick-label">Select reach</div>'+
+      REACH_SCALES[key].map(s=>`<button class="pick-btn" onclick="selectReach(${s.score},'${s.label}','${s.range}')">${s.range}</button>`).join('');
+    setTimeout(()=>pickerArea.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
   }
 
   function selectReach(score,label,range) {
     answers.reach_score=score; answers.reach_label=label; answers.reach_range=range;
     document.getElementById('picker-area').innerHTML='';
-    addMsg(`${label} — ${range}`,'user');
+    addMsg(range,'user');
     addMsg("What data supports that estimate — analytics, research, or a gut feel?",'agent');
     answers.reach_source_pending=true;
     document.getElementById('input-area').style.display='flex';
+    setTimeout(()=>document.getElementById('input-area').scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
   }
 
   function addMsg(text,role) {
