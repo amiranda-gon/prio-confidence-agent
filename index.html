@@ -373,6 +373,21 @@
       .score-grid { grid-template-columns: repeat(2, 1fr); }
       .risk-row { grid-template-columns: 1fr; }
     }
+
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      padding: 0;
+      font-family: var(--font);
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .back-btn:hover { color: var(--text-secondary); }
+  </style>
+    
   </style>
 </head>
 <body>
@@ -396,7 +411,8 @@
   </div>
   <div id="phase-label" class="phase-label">PM type</div>
   <div id="type-badge"></div>
-  <div id="messages" class="messages"></div>
+  <button class="back-btn" id="back-btn" onclick="goBack()">← Edit last answer</button>
+<div id="messages" class="messages"></div>
   <div id="picker-area"></div>
   <div id="output-area"></div>
   <div class="input-area" id="input-area" style="display:none">
@@ -407,7 +423,8 @@
 
 <script>
   let mode = 'roadmap', phase = 0, qIndex = 0;
-  let answers = {}, pmType = null, consumerAudience = null, scores = {};
+let answers = {}, pmType = null, consumerAudience = null, scores = {};
+let history = [];
 
   const PHASES = ['PM type','Problem','Reach','Impact','Confidence','Effort'];
 
@@ -506,6 +523,8 @@
     document.getElementById('picker-area').innerHTML='';
     document.getElementById('input-area').style.display='none';
     document.getElementById('type-badge').innerHTML='';
+    document.getElementById('back-btn').style.display='none';
+    history=[];
     document.getElementById('phase-bar').style.display=mode==='roadmap'?'flex':'none';
     updatePhaseBar();
     if(mode==='checkin'){
@@ -530,6 +549,7 @@
   }
 
   function selectPMType(type) {
+    saveHistory();
     pmType=type;
     const label=PM_TYPES.find(t=>t.id===type).label;
     document.getElementById('picker-area').innerHTML='';
@@ -547,6 +567,7 @@
   }
 
   function selectAudience(aud) {
+    saveHistory();
     consumerAudience=aud;
     document.getElementById('picker-area').innerHTML='';
     addMsg(aud.charAt(0).toUpperCase()+aud.slice(1),'user');
@@ -588,6 +609,7 @@
   }
 
   function selectEffort(weeks,label,range) {
+    saveHistory();
     answers.effort_raw=String(weeks);
     answers.effort_label=label;
     answers.effort_range=range;
@@ -599,6 +621,7 @@
   }
 
   function selectReach(score,label,range) {
+    saveHistory();
     answers.reach_score=score; answers.reach_label=label; answers.reach_range=range;
     document.getElementById('picker-area').innerHTML='';
     addMsg(range,'user');
@@ -608,7 +631,7 @@
     setTimeout(()=>document.getElementById('input-area').scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
   }
 
-  function addMsg(text,role) {
+function addMsg(text,role) {
     if(!text) return;
     const msgs=document.getElementById('messages');
     const div=document.createElement('div');
@@ -616,6 +639,15 @@
     div.textContent=text;
     msgs.appendChild(div);
     msgs.scrollTop=msgs.scrollHeight;
+    return div;
+  }
+
+  function saveHistory() {
+    // paste here
+  }
+
+  function goBack() {
+    // paste here
   }
 
   function isTooVague(text) {
