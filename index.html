@@ -568,7 +568,7 @@
     if(!scale) { console.error('No scale found for key:', key, 'pmType:', pmType, 'audience:', consumerAudience); return; }
     const pickerArea = document.getElementById('picker-area');
     pickerArea.innerHTML='<div class="pick-label">Select reach</div>'+
-      scale.map(s=>`<button class="pick-btn" onclick="selectReach(${s.score},\'${s.label}\',\'${s.range}\')">${s.range}</button>`).join('');
+      scale.map(s=>`<button class="pick-btn" onclick="selectReach(${s.score},'${s.label}','${s.range}')">${s.range}</button>`).join('');
     setTimeout(()=>pickerArea.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
   }
 
