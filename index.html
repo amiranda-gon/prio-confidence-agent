@@ -469,8 +469,14 @@
   ];
 
   const EFFORT_QUESTIONS = [
-    { q: "How many weeks of eng effort is this estimated at?", key: 'effort_raw' },
     { q: "Has this been scoped with the eng lead, or is this your rough guess?", key: 'effort_source', nudge: "Effort estimates without eng input are typically off by 2x — and that'll pull your confidence down." }
+  ];
+
+  const EFFORT_SCALES = [
+    { label: 'Small', range: '<1 week', weeks: 1 },
+    { label: 'Medium', range: '1 week–1 month', weeks: 3 },
+    { label: 'Large', range: '1 month–1 quarter', weeks: 8 },
+    { label: 'X-Large', range: '>1 quarter', weeks: 16 }
   ];
 
   const CHECKIN_FLOW = [
@@ -564,6 +570,26 @@
     setTimeout(()=>pickerArea.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
   }
 
+ function showEffortPicker() {
+    document.getElementById('input-area').style.display='none';
+    addMsg("How big is this effort?",'agent');
+    const pickerArea = document.getElementById('picker-area');
+    pickerArea.innerHTML='<div class="pick-label">Select effort size</div>'+
+      EFFORT_SCALES.map(s=>`<button class="pick-btn" onclick="selectEffort(${s.weeks},'${s.label}','${s.range}')">${s.range}</button>`).join('');
+    setTimeout(()=>pickerArea.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
+  }
+
+  function selectEffort(weeks,label,range) {
+    answers.effort_raw=String(weeks);
+    answers.effort_label=label;
+    answers.effort_range=range;
+    document.getElementById('picker-area').innerHTML='';
+    addMsg(`${label} — ${range}`,'user');
+    setTimeout(()=>addMsg(EFFORT_QUESTIONS[0].q,'agent'),400);
+    document.getElementById('input-area').style.display='flex';
+    setTimeout(()=>document.getElementById('input-area').scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
+  }
+
   function selectReach(score,label,range) {
     answers.reach_score=score; answers.reach_label=label; answers.reach_range=range;
     document.getElementById('picker-area').innerHTML='';
@@ -652,7 +678,7 @@
     if(qIndex>=qs.length) {
       if(phase===1) setTimeout(()=>showReachPicker(),400);
       else if(phase===3){ phase=4; qIndex=0; updatePhaseBar(); setTimeout(()=>{ addMsg("Now the hard one — let's pressure-test your solution.",'agent'); setTimeout(()=>addMsg(CONFIDENCE_QUESTIONS[0].q,'agent'),500); },400); }
-      else if(phase===4){ phase=5; qIndex=0; updatePhaseBar(); setTimeout(()=>{ addMsg("Almost there — effort.",'agent'); setTimeout(()=>addMsg(EFFORT_QUESTIONS[0].q,'agent'),500); },400); }
+     else if(phase===4){ phase=5; qIndex=0; updatePhaseBar(); setTimeout(()=>{ addMsg("Almost there — effort.",'agent'); setTimeout(()=>showEffortPicker(),500); },400); }
       else if(phase===5){ document.getElementById('input-area').style.display='none'; setTimeout(()=>{ deriveScores(); renderScoreOutput(); },500); }
     } else {
       setTimeout(()=>addMsg(qs[qIndex].q,'agent'),400);
@@ -688,7 +714,9 @@
     scores.viability_label=viability.label;
     scores.viability_conflict=viability.conflict;
     scores.viability_aligned=viability.aligned;
-    scores.effort=Math.min(parseInt((answers.effort_raw||'').replace(/[^0-9]/g,''))||4,20);
+    scores.effort=parseInt(answers.effort_raw)||4;
+    scores.effort_label=answers.effort_label||'Medium';
+    scores.effort_range=answers.effort_range||'';
     scores.effort_scoped=effortScoped;
     scores.rice=Math.round((scores.reach*scores.impact*(scores.confidence_pct/100))/Math.max(scores.effort,1));
   }
