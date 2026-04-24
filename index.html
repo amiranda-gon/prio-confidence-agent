@@ -643,7 +643,40 @@ function addMsg(text,role) {
   }
 
   function saveHistory() {
-    // paste here
+    const msgs=document.getElementById('messages');
+    history.push({
+      phase, qIndex, pmType, consumerAudience,
+      answers: {...answers},
+      msgCount: msgs.children.length,
+      inputVisible: document.getElementById('input-area').style.display,
+      phaseLabel: document.getElementById('phase-label').textContent,
+      typeBadge: document.getElementById('type-badge').innerHTML
+    });
+    document.getElementById('back-btn').style.display='block';
+  }
+
+  function goBack() {
+    if(!history.length) return;
+    const prev=history.pop();
+    phase=prev.phase; qIndex=prev.qIndex;
+    pmType=prev.pmType; consumerAudience=prev.consumerAudience;
+    answers={...prev.answers};
+    const msgs=document.getElementById('messages');
+    while(msgs.children.length>prev.msgCount) msgs.removeChild(msgs.lastChild);
+    document.getElementById('input-area').style.display=prev.inputVisible;
+    document.getElementById('phase-label').textContent=prev.phaseLabel;
+    document.getElementById('type-badge').innerHTML=prev.typeBadge;
+    document.getElementById('picker-area').innerHTML='';
+    document.getElementById('output-area').innerHTML='';
+    document.getElementById('user-input').value='';
+    document.getElementById('back-btn').style.display=history.length?'block':'none';
+    document.querySelectorAll('.phase-dot').forEach((el,i)=>{
+      el.className='phase-dot'+(i<phase?' done':i===phase?' active':'');
+    });
+    if(prev.phase===0) showPMTypePicker();
+    else if(prev.phase===1&&prev.pmType==='consumer'&&!prev.consumerAudience) showAudiencePicker();
+    else if(prev.phase===2) showReachPicker();
+    else if(prev.phase===5) showEffortPicker();
   }
 
 function saveHistory() {
