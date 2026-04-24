@@ -563,7 +563,7 @@
     phase=2; qIndex=0; updatePhaseBar();
     document.getElementById('input-area').style.display='none';
     addMsg("How many people does this problem affect?",'agent');
-    const key=pmType==='internal'?'internal':'consumer_'+consumerAudience;
+   const key=pmType==='internal'?'internal':'consumer_'+(consumerAudience==='sellers'?'seller':consumerAudience==='buyers'?'buyer':consumerAudience);
     const scale=REACH_SCALES[key];
     if(!scale) return;
     const pickerArea = document.getElementById('picker-area');
